@@ -1,8 +1,11 @@
 package com.wechat.member;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.MappingIterator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.restassured.response.Response;
 import org.junit.Rule;
 import org.junit.Test;
@@ -22,24 +25,33 @@ import java.util.Map;
 
 @RunWith(Parameterized.class)
 public class MemberCreation {
-    @Parameterized.Parameters
-    public static List<Member> dataCSV() throws IOException {
-        return readFromCSV();
-    }
-    public static List<Member> readFromCSV() throws IOException {
-        ArrayList<Member> data=new ArrayList<Member>();
-        CsvMapper mapper = new CsvMapper();
-        CsvSchema schema = mapper.schemaFor(Member.class);
-        //mapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
-        // TODO: 2018/10/14 以resources为根路径
-        File csvFile = new File(MemberCreation.class.getResource("/memberCreate.csv").getFile()); // or from String, URL etc
-        MappingIterator<Member> it = mapper.readerFor(Member.class).with(schema).readValues(csvFile);
-        while (it.hasNext()) {
-            Member row = it.next();
-            data.add(row);
-        }
+    @Parameterized.Parameters()
+    public static List<Member> data() throws IOException {
+        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+        List<Member> data = mapper.readValue(
+                new File(MemberCreation.class.getResource("/memberCreate.yaml").getFile()),
+                new TypeReference<List<Member>>(){}
+        );
         return data;
     }
+//    @Parameterized.Parameters
+//    public static List<Member> dataCSV() throws IOException {
+//        return readFromCSV();
+//    }
+//    public static List<Member> readFromCSV() throws IOException {
+//        ArrayList<Member> data=new ArrayList<Member>();
+//        CsvMapper mapper = new CsvMapper();
+//        CsvSchema schema = mapper.schemaFor(Member.class);
+//        //mapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
+//        // TODO: 2018/10/14 以resources为根路径
+//        File csvFile = new File(MemberCreation.class.getResource("/memberCreate.csv").getFile()); // or from String, URL etc
+//        MappingIterator<Member> it = mapper.readerFor(Member.class).with(schema).readValues(csvFile);
+//        while (it.hasNext()) {
+//            Member row = it.next();
+//            data.add(row);
+//        }
+//        return data;
+//    }
 
     @Parameterized.Parameter
     public Member data;
@@ -49,15 +61,20 @@ public class MemberCreation {
     @Test
     public void testCreateMember(){
         useRelaxedHTTPSValidation();
-        String corpid = "ww516aa64d44600560";
-        String secret ="xFjsMXKRQzA5l97r41UgZ5m-a5AdDOPwxp4HDwz1238";
-        String ACCESS_TOKEN = given().queryParams(corpid,"ww516aa64d44600560")
-                .queryParams(secret,"xFjsMXKRQzA5l97r41UgZ5m-a5AdDOPwxp4HDwz1238")
+        Map mapToken = new HashMap();
+        mapToken.put("corpid","ww516aa64d44600560");
+        mapToken.put("secret","xFjsMXKRQzA5l97r41UgZzHMlmxt_WJJl-O9xhK6H9Y");
+
+        String ACCESS_TOKEN = given().queryParams(mapToken)
+                .log().all()
                 .get("https://qyapi.weixin.qq.com/cgi-bin/gettoken")
                 .then()
                 .statusCode(200)
-                .extract().body().jsonPath().get("access_token")
+                .log().all()
+                //jsonPath().get("access_token")
+                .extract().body().asString()
                 ;
+        System.out.println("ACCESS_TOKEN: "+ACCESS_TOKEN);
 
         Map map = new HashMap();
         map.put("userid",data.getUserid());
