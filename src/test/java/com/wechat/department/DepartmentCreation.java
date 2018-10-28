@@ -1,4 +1,4 @@
-package com.wechat.member;
+package com.wechat.department;
 
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -10,47 +10,49 @@ import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import static io.restassured.RestAssured.*;
-import     static   org.hamcrest.Matchers.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static io.restassured.RestAssured.given;
+import static io.restassured.matcher.RestAssuredMatchers.*;
+import static org.hamcrest.Matchers.*;
 
 @RunWith(Parameterized.class)
-public class MemberCreation extends TestBase{
+public class DepartmentCreation extends TestBase {
+
     @Parameterized.Parameters()
-    public static List<Member> data() throws IOException {
+    public static List<Department> data() throws IOException {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        List<Member> data = mapper.readValue(
-                new File(MemberCreation.class.getResource("/memberCreate.yaml").getFile()),
-                new TypeReference<List<Member>>(){}
+        List<Department> data = mapper.readValue(
+                new File(DepartmentCreation.class.getResource("/departmentCreation.yaml").getFile()),
+                new TypeReference<List<Department>>() {
+                }
         );
         return data;
     }
 
     @Parameterized.Parameter
-    public Member data;
+    public Department data;
     @Rule
     public ErrorCollector collector = new ErrorCollector();
 
     @Test
-    public void testCreateMember(){
-         String body =
-        given()
-                .contentType("application/json")
+    public void departmentCreateTest() {
+        String body = given().contentType("application/json")
                 .body(data)
                 .log().all()
-                .post("https://qyapi.weixin.qq.com/cgi-bin/user/create?access_token=" + accessToken)
+                .post("https://qyapi.weixin.qq.com/cgi-bin/department/create?access_token=" + accessToken)
                 .then()
                 .log().all()
-                .extract().body().asString()
-                ;
+                .extract().body().asString();
         JSONObject jsonObject = JSONObject.parseObject(body);
         Integer errcode = (Integer) jsonObject.get("errcode");
         System.out.println(errcode);
-
-        collector.checkThat(errcode,equalTo(data.getExpect()));
+        collector.checkThat(errcode, equalTo(data.getExpect()));
     }
 
 }

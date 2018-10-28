@@ -1,56 +1,59 @@
-package com.wechat.member;
+package com.wechat.message;
 
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.wechat.TestBase;
+import io.restassured.response.ResponseBodyExtractionOptions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import static io.restassured.RestAssured.*;
-import     static   org.hamcrest.Matchers.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+
 @RunWith(Parameterized.class)
-public class MemberCreation extends TestBase{
+public class MessageCreation extends TestBase {
     @Parameterized.Parameters()
-    public static List<Member> data() throws IOException {
+    public static List<Message> data() throws IOException {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        List<Member> data = mapper.readValue(
-                new File(MemberCreation.class.getResource("/memberCreate.yaml").getFile()),
-                new TypeReference<List<Member>>(){}
+        List<Message> data = mapper.readValue(
+                new File(MessageCreation.class.getResource("/messageCreation.yaml").getFile()),
+                new TypeReference<List<Message>>() {
+                }
         );
         return data;
     }
 
     @Parameterized.Parameter
-    public Member data;
+    public Message data;
     @Rule
     public ErrorCollector collector = new ErrorCollector();
 
     @Test
-    public void testCreateMember(){
-         String body =
-        given()
+    public void testMessage() {
+        System.out.println(data);
+        ResponseBodyExtractionOptions body = given()
                 .contentType("application/json")
                 .body(data)
                 .log().all()
-                .post("https://qyapi.weixin.qq.com/cgi-bin/user/create?access_token=" + accessToken)
+                .post("https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=" + auditAccessToken)
                 .then()
                 .log().all()
-                .extract().body().asString()
-                ;
-        JSONObject jsonObject = JSONObject.parseObject(body);
+                .extract()
+                .body();
+        JSONObject jsonObject = JSONObject.parseObject(body.asString());
         Integer errcode = (Integer) jsonObject.get("errcode");
         System.out.println(errcode);
+        collector.checkThat(errcode, equalTo(data.getExpect()));
 
-        collector.checkThat(errcode,equalTo(data.getExpect()));
+
     }
-
 }

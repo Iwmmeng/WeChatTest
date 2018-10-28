@@ -1,0 +1,6 @@
+- touser: UserID1
+  msgtype: "text"
+  agentid: 3010040
+  text:
+    content: "ddddd"
+  expect: 0

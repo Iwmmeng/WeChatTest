@@ -123,10 +123,10 @@ public class Member {
         this.position = position;
     }
 
-    public String getExpect() {
+    public int getExpect() {
         return expect;
     }
-    public void setExpect(String expect) {
+    public void setExpect(int expect) {
         this.expect = expect;
     }
 
@@ -146,6 +146,6 @@ public class Member {
     private  boolean to_invite;
     private String external_profile;
     private String external_position;
-    private String expect;
+    private int expect;
 }
 
