@@ -1,0 +1,15 @@
+- given:
+      queryParam:
+           key: "value"
+      headers:
+           contentType: "application/json"
+           cookie: "json"
+  when:
+      request: get
+      url: "wwww.baidu.com"
+  then:
+      statusCode: 200
+      body:
+         errcode: 0
+
+
