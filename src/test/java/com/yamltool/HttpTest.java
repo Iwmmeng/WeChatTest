@@ -8,12 +8,9 @@ import org.junit.rules.ErrorCollector;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.yaml.snakeyaml.Yaml;
-
 import java.io.IOException;
 import java.util.List;
-
 import static io.restassured.RestAssured.given;
-
 @RunWith(Parameterized.class)
 public class HttpTest {
     @Parameterized.Parameters
@@ -24,8 +21,6 @@ public class HttpTest {
         List<Step> steps = JSONObject.parseArray(jsonString, Step.class);
         return steps;
     }
-
-
     @Parameterized.Parameter
     public Step data;
     @Rule
@@ -33,25 +28,26 @@ public class HttpTest {
 
     @Test
     public void run() throws IOException {
-        System.out.println(this.data.getGiven().getQueryParam().get("key"));
+        RequestSpecification requestSpecification = given();
+        System.out.println(this.data.getGiven().getQueryParam());
+        System.out.println(this.data.getGiven().getHeaders());
         for (Step data : data()) {
-            RequestSpecification requestSpecification = given();
             requestSpecification.queryParams(data.getGiven().getQueryParam());
-            if (data.getGiven().getHeader() != null) {
-                if (data.getGiven().getHeader().getContentType() != null) {
-                    requestSpecification.contentType(data.getGiven().getHeader().getContentType());
-                }
-                if (data.getGiven().getHeader().getCookie() != null) {
-                    requestSpecification.cookie(data.getGiven().getHeader().getCookie());
-                }
+            if (data.getGiven().getHeaders() != null) {
+                requestSpecification.headers(data.getGiven().getHeaders());
             }
             if (data.getWhen().getRequest() == "get") {
-                requestSpecification.when().get(data.getWhen().getUrl());
+                requestSpecification.log().all()
+                        .when().get(data.getWhen().getUrl());
             }
             if (data.getWhen().getRequest() == "post") {
-                requestSpecification.when().post(data.getWhen().getUrl());
+                requestSpecification.log().all()
+                .when().post(data.getWhen().getUrl());
             }
-            requestSpecification.then().statusCode(200);
+            requestSpecification.log().all()
+                    .then().statusCode(200).log().all()
+            ;
         }
     }
 }
+
