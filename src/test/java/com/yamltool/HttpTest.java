@@ -36,7 +36,7 @@ public class HttpTest {
             if (data.getGiven().getHeaders() != null) {
                 requestSpecification.headers(data.getGiven().getHeaders());
             }
-            if (data.getWhen().getRequest() == "get") {
+            if (data.getWhen().getRequest().equals("get")) {
                 requestSpecification.log().all()
                         .when().get(data.getWhen().getUrl());
             }
